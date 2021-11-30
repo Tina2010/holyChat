@@ -8,6 +8,7 @@ holyChat is a mobile application for fast communication between end users.
 ## Tech Stack
 * React Native
 * Expo
+* Gifted Chat
 
 # Running The App
 To launch the app run `expo start`.
