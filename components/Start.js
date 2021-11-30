@@ -3,12 +3,12 @@ import {
   View, 
   Text, 
   TextInput, 
-  Button, 
   ImageBackground,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
-  Pressable} from 'react-native';
+  KeyboardAvoidingView,
+  Pressable,
+  Platform} from 'react-native';
 
 export default class Start extends React.Component {
   constructor(props) {
@@ -16,188 +16,127 @@ export default class Start extends React.Component {
     this.state = { 
       name: '', 
       bgColor:'#757083',
-      textColor: 'black',
-      isFocused: false,
-      isFocusedBlack: false,
-      isFocusedPurple: false,
-      isFocusedGrey: false,
-      isFocusedGreen: false,
     }
   }
-/* currently only visible in web browser: 
-set white inner ring, when color is active
-one for each color is needed, since one state for all
-controls the visibility of the ring for all at once */
-  onFocusChangeBlack = () => {
-    this.setState({ isFocusedBlack: true });
-  }
-  onFocusChangePurple = () => {
-    this.setState({ isFocusedPurple: true });
-  }
-  onFocusChangeGrey = () => {
-    this.setState({ isFocusedGrey: true });
-  }
-  onFocusChangeGreen = () => {
-    this.setState({ isFocusedGreen: true });
-  }
 
-//remove white inner ring, when color is active  
-  onBlurChangeBlack = () => {
-    this.setState({ isFocusedBlack: false });
-  }
-  onBlurChangePurple = () => {
-    this.setState({ isFocusedPurple: false });
-  }
-  onBlurChangeGrey = () => {
-    this.setState({ isFocusedGrey: false });
-  }
-  onBlurChangeGreen = () => {
-    this.setState({ isFocusedGreen: false });
-  }
-
-  
   render() {
     return (
       <ImageBackground 
-          style={styles.image}
-          resizeMode="cover"
-          source={require("../assets/bgImage.png")}
-          >      
-         <ScrollView> 
-          <View style={styles.container}>
-            <Text style={styles.appTitle}>HolyChat!</Text>
-              <View style={styles.subContainer}>
-                <Text>Please enter your name:</Text> 
-                <TextInput
-                        onChangeText={(name) => this.setState({ name })}
-                        value={this.state.name}
-                        placeholder="Your Name"
-                        style={styles.yourName}
-                      /> 
-                <Text style={styles.chooseBGColor}>Choose Background Color:</Text>
-                  <View style={styles.touchableColors}>
-                    <TouchableOpacity
-                      style={(this.state.isFocusedBlack) 
-                        ? {
-                          backgroundColor: "#090C08",
-                          borderColor: 'antiquewhite',
-                          borderStyle: 'double',
-                          borderWidth: 'initial',
-                          width: 45,
-                          height: 45,
-                          marginRight: 20,
-                          marginBottom: 10,
-                          borderRadius: 45 / 2,
-                        } : {
-                          backgroundColor: "#090C08",
-                          borderColor: '#090C08',
-                          borderStyle: 'double',
-                          borderWidth: 'initial',
-                          width: 45,
-                          height: 45,
-                          marginRight: 20,
-                          marginBottom: 10,
-                          borderRadius: 45 / 2,
-                        }}                      
-                      onPress={() => this.setState({ bgColor: "#090C08", textColor: "white" })}
-                      onFocus={this.onFocusChangeBlack}
-                      onBlur={this.onBlurChangeBlack}
-                    ></TouchableOpacity>
-                    <TouchableOpacity
-                        style={(this.state.isFocusedPurple) 
-                        ? {
-                          backgroundColor: "#474056",
-                          borderColor: 'antiquewhite',
-                          borderStyle: 'double',
-                          borderWidth: 'initial',
-                          width: 45,
-                          height: 45,
-                          marginRight: 20,
-                          marginBottom: 10,
-                          borderRadius: 45 / 2,
-                        } : {
-                          backgroundColor: "#474056",
-                          borderColor: '#474056',
-                          borderStyle: 'double',
-                          borderWidth: 'initial',
-                          width: 45,
-                          height: 45,
-                          marginRight: 20,
-                          marginBottom: 10,
-                          borderRadius: 45 / 2,
-                        }} 
-                      onPress={() => this.setState({ bgColor: "#474056", textColor: "white" })}
-                      onFocus={this.onFocusChangePurple}
-                      onBlur={this.onBlurChangePurple}
-                    ></TouchableOpacity>
-                    <TouchableOpacity
-                        style={(this.state.isFocusedGrey) 
-                          ? {
-                            backgroundColor: "#8A95A5",
-                            borderColor: 'antiquewhite',
-                            borderStyle: 'double',
-                            borderWidth: 'initial',
-                            width: 45,
-                            height: 45,
-                            marginRight: 20,
-                            marginBottom: 10,
-                            borderRadius: 45 / 2,
-                          } : {
-                            backgroundColor: "#8A95A5",
-                            borderColor: '#8A95A5',
-                            borderStyle: 'double',
-                            borderWidth: 'initial',
-                            width: 45,
-                            height: 45,
-                            marginRight: 20,
-                            marginBottom: 10,
-                            borderRadius: 45 / 2,
-                          }} 
-                      onPress={() => this.setState({ bgColor: "#8A95A5", textColor: "black" })}
-                      onFocus={this.onFocusChangeGrey}
-                      onBlur={this.onBlurChangeGrey}
-                    ></TouchableOpacity>
-                    <TouchableOpacity
-                        style={(this.state.isFocusedGreen) 
-                          ? {
-                            backgroundColor: "#B9C6AE",
-                            borderColor: 'antiquewhite',
-                            borderStyle: 'double',
-                            borderWidth: 'initial',
-                            width: 45,
-                            height: 45,
-                            marginRight: 20,
-                            marginBottom: 10,
-                            borderRadius: 45 / 2,
-                          } : {
-                            backgroundColor: "#B9C6AE",
-                            borderColor: '#B9C6AE',
-                            borderStyle: 'double',
-                            borderWidth: 'initial',
-                            width: 45,
-                            height: 45,
-                            marginRight: 20,
-                            marginBottom: 10,
-                            borderRadius: 45 / 2,
-                          }} 
-                      onPress={() => this.setState({ bgColor: "#B9C6AE", textColor: "black" })}
-                      onFocus={this.onFocusChangeGreen}
-                      onBlur={this.onBlurChangeGreen}
-                    ></TouchableOpacity>
-                  </View>  
-                <View style={styles.button}>     
-                <Pressable
-                  onPress={() => this.props.navigation.navigate('Chat',
-                  {name: this.state.name,
-                  bgColor: this.state.bgColor,
-                  textColor: this.state.textColor})}
-                >
-                    <Text style={{color: 'white'}}>Go to Chat!</Text>
-                </Pressable> 
-                </View>
-            </View>
-        </View>
-       </ScrollView> 
+        style={styles.image}
+        resizeMode="cover"
+        source={require("../assets/bgImage.png")}
+      >      
+        <View style={styles.container}>
+          <Text style={styles.appTitle}>HolyChat!</Text>
+          <KeyboardAvoidingView
+            behavior= {(Platform.OS === 'ios')? "position" : null}
+/*          even though android is said to be problematic with the keyboard, I had trouble with ios,
+            therefor the the behavior and keyboardVerticalOffset is needed here */
+            keyboardVerticalOffset={(Platform.OS === 'ios')? "100" :  "500"}
+          >           
+          <View style={styles.subContainer}>
+                  <Text>Please enter your name:</Text> 
+                 
+                  <TextInput
+                          onChangeText={(name) => this.setState({ name })}
+                          value={this.state.name}
+                          placeholder="Your Name"
+                          style={styles.yourName}
+                        > 
+                  </TextInput>
+                  <Text style={styles.chooseBGColor}>Choose Background Color:</Text>
+                    <View style={styles.touchableColors}
+                      collapsable= {true}
+                    >
+                      {/* change background to black */}
+                      <TouchableOpacity
+                        accessible={true}
+                        accessibilityLabel="Change backgroundcolor"
+                        accessibilityHint="Lets you pick black as the backgroundcolor for your chat window."
+                        accessibilityRole="button"  
+                        onPress={() => this.setState({ bgColor: "#090C08", })}
+                        style={[styles.colors, styles.black]}
+                      ></TouchableOpacity>
+                      {/* change background to purple */}
+                      <TouchableOpacity
+                        accessible={true}
+                        accessibilityLabel="Change backgroundcolor"
+                        accessibilityHint="Lets you pick purple as the backgroundcolor for your chat window."
+                        accessibilityRole="button"
+                        onPress={() => this.setState({ bgColor: "#474056" })}
+                        style={[styles.colors, styles.purple]}
+                      ></TouchableOpacity>
+                      {/* change background to grey */}
+                      <TouchableOpacity
+                        accessible={true}
+                        accessibilityLabel="Change backgroundcolor"
+                        accessibilityHint="Lets you pick grey as the backgroundcolor for your chat window."
+                        accessibilityRole="button"
+                        onPress={() => this.setState({ bgColor: "#8A95A5" })}
+                        style={[styles.colors, styles.grey]}
+                      ></TouchableOpacity>
+                      {/* change background to green */}
+                      <TouchableOpacity
+                        accessible={true}
+                        accessibilityLabel="Change backgroundcolor"
+                        accessibilityHint="Lets you pick green as the backgroundcolor for your chat window."
+                        accessibilityRole="button"
+                        onPress={() => this.setState({ bgColor: "#B9C6AE" })}
+                        style={[styles.colors, styles.green]}
+                      ></TouchableOpacity>
+                    </View>  
+                  <View style={styles.button}>
+                    {this.state.name === ""? 
+                      <Pressable
+                      style={({ pressed }) => [
+                        {
+                          opacity: pressed
+                            ? 0.5
+                            : 50
+                        }
+                      ]}
+                      hitSlop={{
+                        top: 20, 
+                        bottom: 20,
+                        left: 100,
+                        right: 100
+                      }}
+                    >
+                        <Text style={{color: 'white'}}>Please enter your name!</Text>
+                    </Pressable> 
+                  :
+                  
+                    <Pressable
+                      onPress={() => this.props.navigation.navigate('Chat',
+                      {name: this.state.name,
+                      bgColor: this.state.bgColor})}
+                      style={({ pressed }) => [
+                        {
+                          opacity: pressed
+                            ? 0.5
+                            : 50
+                        }
+                      ]}
+                      hitSlop={{
+                        top: 20, 
+                        bottom: 20,
+                        left: 100,
+                        right: 100
+                      }}
+                    >
+                        <Text style={{color: 'white'}}>Go to Chat!</Text>
+                    </Pressable>                   
+                  
+                  
+                  }     
+
+                    
+                  </View>
+                  
+          </View>
+          </KeyboardAvoidingView>
+        </View>  
+       
       </ImageBackground>  
     )
   }
@@ -206,9 +145,6 @@ controls the visibility of the ring for all at once */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    width: '100%',
-    height: '100%',
   },
   image: {
     flex: 1,
@@ -217,14 +153,15 @@ const styles = StyleSheet.create({
     fontSize: 45,
     fontWeight: "600",
     color: "#fff",
+    flex: 1,
     top: 100,
+    alignSelf: 'center',
   },  
   subContainer: {
-    alignItems: 'flex-start',
-    margin: 20,
     backgroundColor: 'white',
-    padding: 30,
-    top: '65%',
+    alignSelf: 'center',
+    marginBottom: '10%',
+    padding: '5%'
   },
   yourName: {
     fontSize: 16,
@@ -242,15 +179,33 @@ const styles = StyleSheet.create({
   chooseBGColor: {
     fontSize: 16,
     fontWeight: '300',
-    color: '#757083',
+    color: "#757083",
     opacity: 100,
     padding: 20,
     paddingLeft: 0,
   },
   touchableColors: {
     flexDirection: "row",
-    marginBottom: 10,
     alignSelf: 'center',
+  },
+  colors: {
+    width: 45,
+    height: 45,
+    marginRight: 20,
+    marginBottom: 10,
+    borderRadius: 45 / 2,
+  },
+  black: {
+    backgroundColor: "#090C08"
+  },
+  purple: {
+    backgroundColor: '#474056'
+  },
+  grey: {
+    backgroundColor:'#8A95A5'
+  },
+  green: {
+    backgroundColor: '#B9C6AE'
   },
   button: {
     fontSize: 16,
