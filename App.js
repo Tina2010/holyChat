@@ -1,7 +1,4 @@
-import { StatusBar } from 'expo-status-bar';
 import React, {Component} from 'react';
-import { 
-  StyleSheet } from 'react-native';
 
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
@@ -16,7 +13,6 @@ const Stack = createStackNavigator();
 export default class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { text: '' };
   }
 
 
@@ -40,7 +36,3 @@ export default class App extends Component {
     );
   }  
 }
-
-const styles = StyleSheet.create({
-
-});
