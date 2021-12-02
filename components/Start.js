@@ -8,7 +8,8 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Pressable,
-  Platform} from 'react-native';
+  Platform,
+  LogBox} from 'react-native';
 
 export default class Start extends React.Component {
   constructor(props) {
@@ -17,7 +18,11 @@ export default class Start extends React.Component {
       name: '', 
       bgColor:'#757083',
     }
+  // ignoring time warning on android
+  LogBox.ignoreLogs(['Setting a timer']);  
   }
+
+  
 
   render() {
     return (

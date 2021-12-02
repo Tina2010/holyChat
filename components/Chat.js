@@ -6,7 +6,8 @@ import {
   Text,
   Linking,
   KeyboardAvoidingView,
-  Platform } from 'react-native';
+  Platform,
+  LogBox } from 'react-native';
 
 import { GiftedChat, Bubble, SystemMessage } from 'react-native-gifted-chat';
 
@@ -24,10 +25,7 @@ const firebaseConfig = {
   measurementId: "G-56FLJZ4Y26"
 };
 
-// https://github.com/facebook/react-native/issues/12981
-console.ignoredYellowBox = [
-  'Setting a timer'
-]
+
 export default class Chat extends React.Component {
   constructor(props) {
     super(props);
@@ -41,6 +39,8 @@ export default class Chat extends React.Component {
         avatar: ''
       }
     };
+    // ignoring time warning on
+    LogBox.ignoreLogs(['Setting a timer']);
 
     if (!firebase.apps.length){
       firebase.initializeApp(firebaseConfig);
@@ -52,18 +52,19 @@ export default class Chat extends React.Component {
   componentDidMount() {
     this.props.navigation.setOptions({ title: this.state.name }); 
     // calls the Firebase Auth service
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+    this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
       if (!user) {
-        await firebase.auth().signInAnonymously();
+        firebase.auth().signInAnonymously();
+        
       }
-
       this.setState({
         uid: user.uid,
+        messages: [],
         user: {
-          uid: user.uid,
-          name: this.state.name,
-          avatar: 'https://placeimg.com/140/140/any'
-        }
+          _id: user.uid,
+          name: this.props.route.params.name,
+          avatar: "",
+        },
       });
 
       this.unsubscribeMessagesCollection = this.messagesCollection
@@ -85,7 +86,7 @@ export default class Chat extends React.Component {
         user: {
           _id: data.user._id,
           name: data.user.name,
-          avatar: data.user.avatar
+          avatar: "https://placeimg.com/140/140/any"
         }
       });
     });
@@ -125,23 +126,19 @@ export default class Chat extends React.Component {
   }
 
   // style of textbubbles
-  renderBubble(props) {
+  renderBubble = props => {
+    let username = props.currentMessage.user._id
+    let color = this.getColor(username)
     return (
       <Bubble
         {...props}
         // bubblewrapper
         wrapperStyle={{
           right: {
-            backgroundColor: 'white',
+            backgroundColor: 'black',
           },
           left: {
-            backgroundColor: '#f7e5c4',
-          }
-        }}
-        // text in bubblewrapper
-        textStyle={{
-          right: {
-            color: 'black'
+            backgroundColor: color,
           }
         }}
         // time in bubblewrapper
@@ -155,6 +152,18 @@ export default class Chat extends React.Component {
         }}
       />
     )
+  }
+
+  getColor(user){
+    let sumChars = 0;
+    for(let i = 0;i < user.length;i++){
+      sumChars += user.charCodeAt(i);
+    }
+
+    const colors = [
+      'lightblue', 'lightcoral', 'lightgreen'
+    ];
+    return colors[sumChars % colors.length];
   }
 
   // stop receiving updates about collection
@@ -185,7 +194,7 @@ export default class Chat extends React.Component {
                   onSend={messages => this.onSend(messages)}
                   renderSystemMessage={this.renderSystemMessage}
                   user={{
-                    _id: this.state.uid,
+                    _id: this.state.uid
                   }}
             />
             {/* Fix for know adroid issue, keyboard hovers over chat */}
