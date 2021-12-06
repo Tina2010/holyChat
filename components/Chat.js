@@ -9,7 +9,10 @@ import {
   Platform,
   LogBox } from 'react-native';
 
-import { GiftedChat, Bubble, SystemMessage } from 'react-native-gifted-chat';
+import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth"
@@ -25,7 +28,7 @@ const firebaseConfig = {
   measurementId: "G-56FLJZ4Y26"
 };
 
-
+LogBox.ignoreAllLogs();
 export default class Chat extends React.Component {
   constructor(props) {
     super(props);
@@ -36,11 +39,9 @@ export default class Chat extends React.Component {
       user: {
         _id: '',
         name: '',
-        avatar: ''
-      }
+      },
+      isConnected: false,
     };
-    // ignoring time warning on
-    LogBox.ignoreLogs(['Setting a timer']);
 
     if (!firebase.apps.length){
       firebase.initializeApp(firebaseConfig);
@@ -51,26 +52,28 @@ export default class Chat extends React.Component {
 
   componentDidMount() {
     this.props.navigation.setOptions({ title: this.state.name }); 
-    // calls the Firebase Auth service
-    this.authUnsubscribe = firebase.auth().onAuthStateChanged((user) => {
-      if (!user) {
-        firebase.auth().signInAnonymously();
+    NetInfo.fetch().then(connection => {
+      if(connection.isConnected) { 
+        this.setState({ isConnected: true});   
         
+        // calls the Firebase Auth service
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+          if (!user) {
+            await firebase.auth().signInAnonymously();
+          }
+          this.setState({
+            uid: user.uid,
+            messages: [],
+          });
+          this.unsubscribeMessagesCollection = this.messagesCollection
+          .orderBy('createdAt', 'desc')
+          .onSnapshot(this.onCollectionUpdate);
+        });
+      } else {
+        this.setState({isConnected: false});
+        this.getMessages();
       }
-      this.setState({
-        uid: user.uid,
-        messages: [],
-        user: {
-          _id: user.uid,
-          name: this.props.route.params.name,
-          avatar: "",
-        },
-      });
-
-      this.unsubscribeMessagesCollection = this.messagesCollection
-      .orderBy('createdAt', 'desc')
-      .onSnapshot(this.onCollectionUpdate);
-    });
+    })
   }
 
 /*   retrieves the current data in the "messages" collection and stores it in the state, 
@@ -86,33 +89,45 @@ export default class Chat extends React.Component {
         user: {
           _id: data.user._id,
           name: data.user.name,
-          avatar: "https://placeimg.com/140/140/any"
         }
       });
     });
-    this.setState({
-      messages: messages
+    this.setState({ messages: messages }, () => { 
+      this.saveMessages();
     });
   };
+
+  async saveMessages() {
+    try {
+      await AsyncStorage.setItem("messages", JSON.stringify(this.state.messages));
+    } catch (error) {
+    console.log(error.message);
+    }
+  }
+
+  async getMessages() {
+    let messages = "";
+    try {
+      messages = (await AsyncStorage.getItem("messages")) || [];
+      this.setState({
+        messages: JSON.parse(messages),
+      });
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  async deleteMessages () {
+    try {
+      await AsyncStorage.removeItem("messages");
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
 
   onSend(newMessage = []) { 
     this.addMessage(newMessage)
   }
-
-  // currently in test-phase! 
-  renderSystemMessage = props => {
-    return (
-      <SystemMessage
-        {...props}
-        containerStyle={{
-          marginBottom: 15
-        }}
-        textStyle={{
-          fontSize: 14
-        }}
-      />
-    );
-  };
 
   // add latest message to firebase collection
   addMessage(newMessage) {
@@ -127,44 +142,33 @@ export default class Chat extends React.Component {
 
   // style of textbubbles
   renderBubble = props => {
-    let username = props.currentMessage.user._id
-    let color = this.getColor(username)
     return (
       <Bubble
         {...props}
-        // bubblewrapper
-        wrapperStyle={{
+        textStyle={{
           right: {
-            backgroundColor: 'black',
+            color: 'black',
           },
-          left: {
-            backgroundColor: color,
-          }
         }}
-        // time in bubblewrapper
-        timeTextStyle={{ 
-          right: { 
-            color: 'rgb(26, 26, 26)' 
+        wrapperStyle={{
+          left: {
+            backgroundColor: 'lightblue',
           },
-          left: { 
-            color: 'rgb(26, 26, 26)' 
-          }
         }}
       />
-    )
+    );
   }
 
-  getColor(user){
-    let sumChars = 0;
-    for(let i = 0;i < user.length;i++){
-      sumChars += user.charCodeAt(i);
+
+  renderInputToolbar(props) {
+    if(this.state.isConnected === false) {
+    } else {
+      return (
+        <InputToolbar {...props}/>
+      );
     }
+  }  
 
-    const colors = [
-      'lightblue', 'lightcoral', 'lightgreen'
-    ];
-    return colors[sumChars % colors.length];
-  }
 
   // stop receiving updates about collection
   componentWillUnmount() {
@@ -189,14 +193,16 @@ export default class Chat extends React.Component {
                 padding: 20
           }}>
             <GiftedChat
-                  renderBubble={this.renderBubble.bind(this)}
+                  renderBubble={this.renderBubble}
                   messages={this.state.messages}
-                  onSend={messages => this.onSend(messages)}
-                  renderSystemMessage={this.renderSystemMessage}
-                  user={{
-                    _id: this.state.uid
-                  }}
-            />
+                  onSend={newMessage => this.onSend(newMessage)}
+                  renderInputToolbar={this.renderInputToolbar.bind(this)}
+                  renderUsernameOnMessage={true}
+                  isTyping={true}
+                  user={{ 
+                    _id: this.state.uid,
+                    name: this.state.name
+                  }}/> 
             {/* Fix for know adroid issue, keyboard hovers over chat */}
             { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
         </View>

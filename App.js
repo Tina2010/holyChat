@@ -15,7 +15,6 @@ export default class App extends Component {
     super(props);
   }
 
-
   render() {
     return (
       <NavigationContainer>
@@ -29,7 +28,6 @@ export default class App extends Component {
           <Stack.Screen
             name="Chat"
             component={Chat}
-            p
           />
         </Stack.Navigator>
       </NavigationContainer>

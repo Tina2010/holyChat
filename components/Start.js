@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,7 @@ import {
   Platform,
   LogBox} from 'react-native';
 
-export default class Start extends React.Component {
+export default class Start extends Component {
   constructor(props) {
     super(props);
     this.state = { 
