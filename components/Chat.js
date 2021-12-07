@@ -18,6 +18,8 @@ import firebase from "firebase/compat/app";
 import "firebase/compat/auth"
 import "firebase/compat/firestore"
 
+LogBox.ignoreAllLogs();
+
 const firebaseConfig = {
   apiKey: "AIzaSyCj7Aq_CN8zDRuyw3ZADj0VNeukLUWaQjo",
   authDomain: "test-c54b3.firebaseapp.com",
@@ -27,8 +29,6 @@ const firebaseConfig = {
   appId: "1:632825495982:web:3f1130b10c3af3e3aa483f",
   measurementId: "G-56FLJZ4Y26"
 };
-
-LogBox.ignoreAllLogs();
 export default class Chat extends React.Component {
   constructor(props) {
     super(props);
@@ -41,6 +41,7 @@ export default class Chat extends React.Component {
         name: '',
       },
       isConnected: false,
+      infoConnection: 'offline'
     };
 
     if (!firebase.apps.length){
@@ -54,48 +55,33 @@ export default class Chat extends React.Component {
     this.props.navigation.setOptions({ title: this.state.name }); 
     NetInfo.fetch().then(connection => {
       if(connection.isConnected) { 
-        this.setState({ isConnected: true});   
-        
-        // calls the Firebase Auth service
-        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
-          if (!user) {
-            await firebase.auth().signInAnonymously();
-          }
+        this.setState({ isConnected: true, infoConnection: 'online' });
+        this.authUnsubscribe = firebase.auth().onAuthStateChanged(async (user) => { 
+          if (!user) { await firebase.auth().signInAnonymously() }; 
           this.setState({
             uid: user.uid,
-            messages: [],
+            user: {
+              _id: user.uid,
+              name: this.state.name,
+              avatar: 'https://placeimg.com/140/140/any'
+            }
           });
-          this.unsubscribeMessagesCollection = this.messagesCollection
-          .orderBy('createdAt', 'desc')
-          .onSnapshot(this.onCollectionUpdate);
+          this.unsubscribeMessagesCollection = this.messagesCollection.orderBy('createdAt', 'desc').onSnapshot(this.onCollectionUpdate);
         });
       } else {
-        this.setState({isConnected: false});
+        this.setState({ isConnected: false, infoConnection: 'offline' });
         this.getMessages();
       }
-    })
+    });
   }
 
-/*   retrieves the current data in the "messages" collection and stores it in the state, 
-  allowing that data to be rendered in the view */
-  onCollectionUpdate = (querySnapshot) => {
-    const messages = [];
-    querySnapshot.forEach((doc) => {
-      let data = doc.data();
-      messages.push({
-        _id: data._id,
-        text: data.text,
-        createdAt: data.createdAt.toDate(),
-        user: {
-          _id: data.user._id,
-          name: data.user.name,
-        }
-      });
-    });
-    this.setState({ messages: messages }, () => { 
-      this.saveMessages();
-    });
-  };
+  // stop receiving updates about collection
+  componentWillUnmount() {
+    if (this.state.isConnected === true) {
+      this.authUnsubscribe(); 
+      this.unsubscribeMessagesCollection();
+    }
+  }
 
   async saveMessages() {
     try {
@@ -108,7 +94,7 @@ export default class Chat extends React.Component {
   async getMessages() {
     let messages = "";
     try {
-      messages = (await AsyncStorage.getItem("messages")) || [];
+      messages = await AsyncStorage.getItem("messages") || [];
       this.setState({
         messages: JSON.parse(messages),
       });
@@ -124,9 +110,8 @@ export default class Chat extends React.Component {
       console.log(error.message);
     }
   }
-
-  onSend(newMessage = []) { 
-    this.addMessage(newMessage)
+  onSend(message = []) {
+    this.addMessage(message)
   }
 
   // add latest message to firebase collection
@@ -134,11 +119,35 @@ export default class Chat extends React.Component {
     const latestMessage = newMessage[0]; 
     this.messagesCollection.add({ 
       _id: latestMessage._id,
-      text: latestMessage.text,
+      text: latestMessage.text || '',
       createdAt: latestMessage.createdAt,
-      user: latestMessage.user
+      user: latestMessage.user,
+      image: latestMessage.image || '',
+      location: latestMessage.location || null
     });
   }
+
+  /*   retrieves the current data in the "messages" collection and stores it in the state, 
+  allowing that data to be rendered in the view */
+  onCollectionUpdate = (querySnapshot) => {
+    const messages = [];
+    querySnapshot.forEach((doc) => {
+      let data = doc.data();
+      messages.push({
+        _id: data._id,
+        text: data.text,
+        createdAt: data.createdAt.toDate(),
+        user: {
+          _id: data.user._id,
+          name: data.user.name
+        }
+      });
+    });
+    this.setState({ messages: messages }, () => { 
+      this.saveMessages(); 
+    });
+  };
+
 
   // style of textbubbles
   renderBubble = props => {
@@ -159,7 +168,6 @@ export default class Chat extends React.Component {
     );
   }
 
-
   renderInputToolbar(props) {
     if(this.state.isConnected === false) {
     } else {
@@ -170,12 +178,6 @@ export default class Chat extends React.Component {
   }  
 
 
-  // stop receiving updates about collection
-  componentWillUnmount() {
-    this.authUnsubscribe();
-    this.unsubscribeMessagesCollection();
- }
-
   render() {
     let bgColor = this.props.route.params.bgColor; // bgcolor from start page
 
@@ -184,7 +186,8 @@ export default class Chat extends React.Component {
       style={styles.image}
       resizeMode="cover"
       source={require("../assets/bgImage2.jpg")}
-      >      
+      >
+        <Text>{this.state.infoConnection}</Text>      
         <View 
           style={{
                 backgroundColor: bgColor,
