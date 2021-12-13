@@ -38,5 +38,4 @@ The app will start on your device and you'll be able to use it.
 
 ### Screenshots
 
-![screenshot1](/assets/screenshot1.png "Start-Screen")
-![screenshot2](/assets/screenshot2.png "Chat-Screen")
+![screenshot1](/assets/screenshot1.png "Start-Screen")![screenshot2](/assets/screenshot2.png "Chat-Screen")
