@@ -1,15 +1,12 @@
 import React from 'react';
+import { StatusBar } from 'expo-status-bar';
 import { 
   View,   
-  ImageBackground,
-  StyleSheet,
-  Text,
-  Linking,
-  KeyboardAvoidingView,
-  Platform,
-  LogBox } from 'react-native';
+  LogBox, 
+  Platform} from 'react-native';
 
 import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat';
+import MapView from "react-native-maps";
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
@@ -17,6 +14,9 @@ import NetInfo from '@react-native-community/netinfo';
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth"
 import "firebase/compat/firestore"
+import 'firebase/compat/storage'
+
+import CustomActions from './CustomActions';
 
 LogBox.ignoreAllLogs();
 
@@ -41,7 +41,9 @@ export default class Chat extends React.Component {
         name: '',
       },
       isConnected: false,
-      infoConnection: 'offline'
+      infoConnection: 'offline',
+      image: null,
+      location: null
     };
 
     if (!firebase.apps.length){
@@ -140,7 +142,9 @@ export default class Chat extends React.Component {
         user: {
           _id: data.user._id,
           name: data.user.name
-        }
+        },
+        image: data.image,
+        location: data.location
       });
     });
     this.setState({ messages: messages }, () => { 
@@ -177,49 +181,103 @@ export default class Chat extends React.Component {
     }
   }  
 
+  renderCustomActions = (props) => {
+    return <CustomActions {...props} />;
+  };
+
+  renderCustomView (props) {
+    const { currentMessage} = props;
+    if (currentMessage.location) {
+      return (
+          <MapView
+            style={{width: 150,
+              height: 100,
+              borderRadius: 13,
+              margin: 3}}
+            region={{
+              latitude: currentMessage.location.latitude,
+              longitude: currentMessage.location.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          />
+      );
+    }
+    return null;
+  }
 
   render() {
     let bgColor = this.props.route.params.bgColor; // bgcolor from start page
-
     return (
-      <ImageBackground 
-      style={styles.image}
-      resizeMode="cover"
-      source={require("../assets/bgImage2.jpg")}
+      <View 
+        style={{
+          flex: 1,
+        }}
       >
-        <Text>{this.state.infoConnection}</Text>      
-        <View 
-          style={{
-                backgroundColor: bgColor,
-                flex: 1,
-                margin: 20,
-                padding: 20
-          }}>
-            <GiftedChat
-                  renderBubble={this.renderBubble}
-                  messages={this.state.messages}
-                  onSend={newMessage => this.onSend(newMessage)}
-                  renderInputToolbar={this.renderInputToolbar.bind(this)}
-                  renderUsernameOnMessage={true}
-                  isTyping={true}
-                  user={{ 
-                    _id: this.state.uid,
-                    name: this.state.name
-                  }}/> 
-            {/* Fix for know adroid issue, keyboard hovers over chat */}
-            { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
+        {Platform.OS === "ios" ?
+        <View
+        style={{
+          flex: 1,
+        }}
+        >
+        <View style={{
+          flex: 10,
+              backgroundColor: bgColor
+            }}>
+          <GiftedChat
+            renderBubble={this.renderBubble}
+            messages={this.state.messages}
+            onSend={newMessage => this.onSend(newMessage)}
+            renderInputToolbar={this.renderInputToolbar.bind(this)}
+            renderUsernameOnMessage={true}
+            renderActions={this.renderCustomActions}
+            renderCustomView={this.renderCustomView}
+            bottomOffset={70}
+            user={{ 
+                _id: this.state.uid,
+                name: this.state.name
+            }}
+          /> 
+         </View>
+          <View style={{
+          flex: 1,
+              backgroundColor: '#121212'
+            }}></View> 
+          </View>          
+        : null } 
+
+        {Platform.OS === "android" ?
+                <View
+                style={{
+                  flex: 1,
+                }}
+                >
+        <View style={{
+          flex: 1,
+              backgroundColor: bgColor
+            }}>
+          <GiftedChat
+            renderBubble={this.renderBubble}
+            messages={this.state.messages}
+            onSend={newMessage => this.onSend(newMessage)}
+            renderInputToolbar={this.renderInputToolbar.bind(this)}
+            renderUsernameOnMessage={true}
+            renderActions={this.renderCustomActions}
+            renderCustomView={this.renderCustomView}
+            user={{ 
+                _id: this.state.uid,
+                name: this.state.name
+            }}
+          /> 
+         </View>
         </View>
-            <Text style={{color: 'black', fontSize: 8, paddingTop: 10}}
-                  onPress={() => Linking.openURL('https://www.freepik.com/vectors/pattern')}>
-              Pattern vector created by rawpixel.com - www.freepik.com
-            </Text>        
-      </ImageBackground>  
+        : null } 
+
+        <StatusBar
+         style='light'
+         backgroundColor="#121212"
+        /> 
+      </View>          
     )
   }
 }
-
-const styles = StyleSheet.create({
-  image: {
-    flex: 1,
-    }
-});

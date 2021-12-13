@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 // import the screens
@@ -14,13 +14,15 @@ export default class App extends Component {
 
   render() {
     return (
-      <NavigationContainer>
+      <NavigationContainer
+        theme={DarkTheme}
+      >
         <Stack.Navigator
-          initialRouteName="Start"
+          initialRouteName="Start"       
         >
           <Stack.Screen
             name="Start"
-            component={Start}
+            component={Start}        
           />
           <Stack.Screen
             name="Chat"

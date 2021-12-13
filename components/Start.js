@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import React, { Component } from 'react';
 import { 
   View, 
@@ -22,15 +23,13 @@ export default class Start extends Component {
   LogBox.ignoreLogs(['Setting a timer']);  
   }
 
-  
-
   render() {
     return (
       <ImageBackground 
         style={styles.image}
         resizeMode="cover"
         source={require("../assets/bgImage.png")}
-      >      
+      >     
         <View style={styles.container}>
           <Text style={styles.appTitle}>HolyChat!</Text>
           <KeyboardAvoidingView
@@ -132,16 +131,16 @@ export default class Start extends Component {
                         <Text style={{color: 'white'}}>Go to Chat!</Text>
                     </Pressable>                   
                   
-                  
                   }     
-
                     
-                  </View>
-                  
+                  </View>    
           </View>
           </KeyboardAvoidingView>
-        </View>  
-       
+        </View> 
+        <StatusBar
+         style='light'
+         backgroundColor="#121212"
+        />  
       </ImageBackground>  
     )
   }
